@@ -3,9 +3,10 @@ import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.css'],
+  standalone: true, // 必須設為 standalone
+  imports: [RouterOutlet] // 引入 RouterOutlet 以支援路由
 })
 export class AppComponent {
   title = 'schedulediary-front';

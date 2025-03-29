@@ -1,0 +1,16 @@
+<div class="todo-container">
+    <h2>我的待辦清單</h2>
+    
+    <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
+    
+    <ul>
+      <li *ngFor="let todo of todos">
+        {{ todo.title }} ({{ todo.date }}) - 狀態：{{ todo.completed ? '完成' : '未完成' }}
+      </li>
+    </ul>
+  
+    <div *ngIf="todos.length === 0 && !errorMessage">
+      目前沒有任何待辦事項。
+    </div>
+  </div>
+  
