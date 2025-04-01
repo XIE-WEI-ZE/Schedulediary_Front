@@ -1,13 +1,10 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css'],
-  standalone: true, // 必須設為 standalone
-  imports: [RouterOutlet] // 引入 RouterOutlet 以支援路由
+  standalone: true,
+  imports: [RouterModule],
+  template: `<router-outlet></router-outlet>`,
 })
-export class AppComponent {
-  title = 'schedulediary-front';
-}
+export class AppComponent {}

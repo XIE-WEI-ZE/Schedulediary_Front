@@ -1,0 +1,100 @@
+<div class="detail-wrapper">
+  <div class="detail-card" *ngIf="todo">
+    <!-- 按鈕移到右上角 -->
+    <div class="button-group">
+      <button class="btn-back" (click)="back()" title="返回列表">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <button class="btn-edit" *ngIf="!isEditing" (click)="enableEdit()" title="編輯">
+        <i class="fas fa-edit"></i>
+      </button>
+      <button class="btn-edit" *ngIf="isEditing" (click)="saveEdit()" title="儲存">
+        <i class="fas fa-save"></i>
+      </button>
+      <button class="btn-delete" (click)="deleteTodo()" title="刪除">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+
+    <h2 *ngIf="!isEditing">{{ todo.title }}</h2>
+    <input *ngIf="isEditing" type="text" [(ngModel)]="editedTodo.title" placeholder="輸入標題" />
+
+    <p>
+      <strong>📅 日期：</strong>
+      <span *ngIf="!isEditing">{{ todo.date }}</span>
+      <input *ngIf="isEditing" type="datetime-local" [(ngModel)]="editedTodo.date" />
+    </p>
+
+    <div class="status-section">
+      <strong>✅ 狀態：</strong>
+      <span *ngIf="!isEditing" [ngClass]="{'completed': todo.isCompleted, 'uncompleted': !todo.isCompleted}">
+        {{ todo.isCompleted ? '已完成' : '未完成' }}
+      </span>
+      <!-- 編輯模式時使用 radio 按鈕選擇是否完成 -->
+      <div *ngIf="isEditing">
+        <label>
+          <input type="radio" name="isCompleted" [(ngModel)]="editedTodo.isCompleted" [value]="true" /> 是
+        </label>
+        <label>
+          <input type="radio" name="isCompleted" [(ngModel)]="editedTodo.isCompleted" [value]="false" /> 否
+        </label>
+      </div>
+    </div>
+
+    <p>
+      <strong>📄 內容：</strong>
+      <span *ngIf="!isEditing">{{ todo.content }}</span>
+      <textarea *ngIf="isEditing" [(ngModel)]="editedTodo.content" placeholder="輸入內容"></textarea>
+    </p>
+
+    <!-- 優先級（星星） -->
+    <p>
+      <strong>🔥 優先級：</strong>
+      <!-- 顯示模式：以星星形式顯示 -->
+      <span *ngIf="!isEditing">
+        <span class="star-rating">
+          <i
+            *ngFor="let star of [1, 2, 3, 4, 5]"
+            class="fa-star"
+            [class.fa-solid]="todo.priorityLevel >= star"
+            [class.fa-regular]="todo.priorityLevel < star"
+          ></i>
+        </span>
+      </span>
+      <!-- 編輯模式：以星星形式選擇 -->
+      <span *ngIf="isEditing">
+        <span class="star-rating">
+          <i
+            *ngFor="let star of [1, 2, 3, 4, 5]"
+            class="fa-star"
+            [class.fa-solid]="(editedTodo.priorityLevel ?? 0) >= star"
+            [class.fa-regular]="(editedTodo.priorityLevel ?? 0) < star"
+            (click)="editedTodo.priorityLevel = star"
+          ></i>
+        </span>
+      </span>
+    </p>
+
+    <div class="category-section">
+      <strong>📂 類別（最多三個）：</strong>
+      <ng-container *ngIf="!isEditing">
+        <span class="tag" *ngFor="let tag of todo.category?.split('#')">
+          <span *ngIf="tag.trim() !== ''">#{{ tag }}</span>
+        </span>
+      </ng-container>
+      <div *ngIf="isEditing">
+        <span class="tag" *ngFor="let tag of editedTags; let i = index">
+          #{{ tag }} <button type="button" (click)="removeTag(i)">✖</button>
+        </span>
+        <input
+          type="text"
+          maxlength="10"
+          [(ngModel)]="tagInput"
+          placeholder="輸入標籤後按 Enter 或新增"
+          (keydown.enter)="addTag()"
+        />
+        <button type="button" class="btn-add-tag" (click)="addTag()">新增標籤</button>
+      </div>
+    </div>
+  </div>
+</div>

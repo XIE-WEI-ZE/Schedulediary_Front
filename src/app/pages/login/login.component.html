@@ -1,15 +1,55 @@
-<div class="login-container">
-  <h2>登入系統</h2>
-  <form (ngSubmit)="login()">
-    <div>
-      <label>帳號：</label>
-      <input type="text" [(ngModel)]="account" name="account" required />
+<div class="container" [class.active]="isSignUp" id="container">
+  <!-- 註冊表單 -->
+  <div class="form-container sign-up">
+    <form (submit)="register(); $event.preventDefault()">
+      <h1>建立帳號</h1>
+      <span>或使用 Email 註冊</span>
+      <input type="text" placeholder="姓名" [(ngModel)]="user.name" name="name" required />
+      <div class="form-group">
+        <label for="gender"></label>
+        <select class="form-input" [(ngModel)]="user.gender" name="gender" required>
+          <option value="" disabled selected>請選擇性別</option>
+          <option value="男">男</option>
+          <option value="女">女</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
+      <input type="date" placeholder="生日" [(ngModel)]="user.birthday" name="birthday" required />
+      <input type="email" placeholder="Gmail" [(ngModel)]="user.email" name="email" required />
+      <input type="text" placeholder="帳號" [(ngModel)]="user.account" name="account" required />
+      <input type="password" placeholder="密碼" [(ngModel)]="user.password" name="password" required />
+      <input type="password" placeholder="確認密碼" [(ngModel)]="user.confirmPassword" name="confirmPassword" required />
+      <div class="error-message">{{ errorMessage }}</div>
+      <button type="submit">註冊</button>
+    </form>
+  </div>
+
+  <!-- 登入表單 -->
+  <div class="form-container sign-in">
+    <form (submit)="login(); $event.preventDefault()">
+      <h1>登入</h1>
+      <span>或使用帳號密碼</span>
+      <input type="text" placeholder="帳號" [(ngModel)]="account" name="account" required />
+      <input type="password" placeholder="密碼" [(ngModel)]="password" name="password" required />
+      <a href="#">忘記密碼？</a>
+      <div class="error-message">{{ errorMessage }}</div>
+      <button type="submit">登入</button>
+    </form>
+  </div>
+
+  <!-- 切換面板 -->
+  <div class="toggle-container">
+    <div class="toggle">
+      <div class="toggle-panel toggle-left">
+        <h1>歡迎回來！</h1>
+        <p>輸入帳號密碼以登入系統</p>
+        <button class="hidden" (click)="toggleForm()">登入</button>
+      </div>
+      <div class="toggle-panel toggle-right">
+        <h1>哈囉，新朋友！</h1>
+        <p>請填寫資訊註冊帳號</p>
+        <button class="hidden" (click)="toggleForm()">註冊</button>
+      </div>
     </div>
-    <div>
-      <label>密碼：</label>
-      <input type="password" [(ngModel)]="password" name="password" required />
-    </div>
-    <button type="submit">登入</button>
-    <div class="error" *ngIf="errorMessage">{{ errorMessage }}</div>
-  </form>
+  </div>
 </div>

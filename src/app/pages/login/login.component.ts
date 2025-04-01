@@ -1,53 +1,91 @@
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+
 
 @Component({
   selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule, FormsModule],
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
-  account: string = '';
-  password: string = '';
-  errorMessage: string = '';
+  isSignUp = false;
+
+  account = '';
+  password = '';
+  errorMessage = '';
+
+  user = {
+    name: '',
+    gender: '',
+    birthday: '',
+    email: '',
+    account: '',
+    password: '',
+    confirmPassword: ''
+  };
+
+  private apiUrl = 'https://localhost:7134/api/Users';
 
   constructor(private http: HttpClient, private router: Router) {}
 
+  toggleForm() {
+    this.isSignUp = !this.isSignUp;
+    this.errorMessage = '';
+  }
+
   login() {
-    const body = { account: this.account, password: this.password };
-    // 改為 http:// 與後端協議一致
-    this.http.post<any>('https://localhost:7134/api/Users/login', body).subscribe({
+    if (!this.account || !this.password) {
+      this.errorMessage = '請輸入帳號和密碼';
+      return;
+    }
+
+    const body = { Account: this.account, Password: this.password };
+
+    this.http.post<any>(`${this.apiUrl}/login`, body).subscribe({
       next: (res) => {
-        // 確認後端響應是否包含 token 和 userId
         if (res.token && res.userId) {
           localStorage.setItem('token', res.token);
-          localStorage.setItem('userId', res.userId);
-          // 將導航移到獨立方法，單獨處理錯誤
-          this.navigateToTodo();
+          localStorage.setItem('userId', res.userId.toString());
+          this.router.navigate(['/todo']);
         } else {
-          console.error('後端響應缺少 token 或 userId:', res);
-          this.errorMessage = '登入成功，但後端響應格式不正確';
+          this.errorMessage = '登入成功，但後端未回傳 token 或 userId';
         }
       },
       error: (err) => {
-        // 記錄詳細錯誤訊息
-        console.error('登入請求失敗:', err);
-        // 根據後端錯誤訊息顯示更具體的提示
-        this.errorMessage = err.error?.message || err.message || '登入失敗，請檢查帳號密碼或後端服務';
+        this.errorMessage = err.error?.message || '登入失敗，請檢查帳號密碼或後端服務';
       }
     });
   }
 
-  private navigateToTodo() {
-    this.router.navigate(['/todo']).catch(err => {
-      // 單獨處理導航錯誤
-      console.error('導航失敗:', err);
-      this.errorMessage = '導航失敗：' + err.message;
+  register() {
+    if (this.user.password !== this.user.confirmPassword) {
+      this.errorMessage = '密碼與確認密碼不一致';
+      return;
+    }
+
+    const payload = {
+      Name: this.user.name,
+      Gender: this.user.gender,
+      Birthday: this.user.birthday,
+      Email: this.user.email,
+      Account: this.user.account,
+      Password: this.user.password,
+      ConfirmPassword: this.user.confirmPassword
+    };
+
+    this.http.post(`${this.apiUrl}/register`, payload).subscribe({
+      next: () => {
+        alert('註冊成功，請登入');
+        this.toggleForm();
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || '註冊失敗，請檢查輸入資料或後端服務';
+      }
     });
   }
 }

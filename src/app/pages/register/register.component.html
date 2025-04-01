@@ -1,1 +1,29 @@
-<p>register works!</p>
+<h2>註冊帳號</h2>
+<form (ngSubmit)="register()">
+  <label>姓名：</label>
+  <input type="text" [(ngModel)]="user.name" name="name" required /><br />
+
+  <label>性別：</label>
+  <select [(ngModel)]="user.gender" name="gender" required>
+    <option value="">請選擇</option>
+    <option value="男">男</option>
+    <option value="女">女</option>
+  </select><br />
+
+  <label>生日：</label>
+  <input type="date" [(ngModel)]="user.birthday" name="birthday" required /><br />
+
+  <label>帳號：</label>
+  <input type="text" [(ngModel)]="user.account" name="account" required /><br />
+
+  <label>Gmail：</label>
+  <input type="email" [(ngModel)]="user.email" name="email" required /><br />
+
+  <label>密碼：</label>
+  <input type="password" [(ngModel)]="user.password" name="password" required /><br />
+
+  <label>確認密碼：</label>
+  <input type="password" [(ngModel)]="user.confirmPassword" name="confirmPassword" required /><br /><br />
+
+  <button type="submit">註冊</button>
+</form>

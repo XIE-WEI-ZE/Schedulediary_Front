@@ -1,0 +1,241 @@
+.detail-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: #f5f7fa;
+  font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.detail-card {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  width: 100%;
+  max-width: 600px;
+  border: 1px solid #e8ecef;
+}
+
+.detail-card h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.detail-card p,
+.detail-card .status-section {
+  margin-bottom: 1.2rem;
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+.detail-card p strong,
+.detail-card .status-section strong {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #333;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.detail-card input[type="text"],
+.detail-card input[type="number"],
+.detail-card input[type="datetime-local"],
+.detail-card textarea {
+  width: 100%;
+  max-width: calc(100% - 150px); /* ⭐️ 關鍵：避免壓到右上角按鈕 */
+  padding: 10px 14px;
+  margin-top: 0.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #333;
+  background-color: #f9fafb;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+}
+
+.detail-card textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.detail-card input:focus,
+.detail-card textarea:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+}
+
+.detail-card .status-section span.completed {
+  color: #28a745;
+}
+
+.detail-card .status-section span.uncompleted {
+  color: #6c757d;
+}
+
+.detail-card .status-section label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1rem;
+  font-size: 0.95rem;
+  color: #555;
+  cursor: pointer;
+}
+
+.detail-card .status-section input[type="radio"] {
+  transform: scale(1.1);
+  cursor: pointer;
+  accent-color: #0066cc;
+}
+
+.button-group {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-back,
+.btn-edit,
+.btn-delete {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.1s ease;
+}
+
+.btn-back .icon,
+.btn-edit .icon,
+.btn-delete .icon {
+  font-size: 1.2rem;
+}
+
+.btn-back {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-back:hover {
+  background: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.btn-edit {
+  background: #0066cc;
+  color: #fff;
+}
+
+.btn-edit:hover {
+  background: #005bb5;
+  transform: translateY(-1px);
+}
+
+.btn-delete {
+  background: #ff4d4f;
+  color: #fff;
+}
+
+.btn-delete:hover {
+  background: #e64446;
+  transform: translateY(-1px);
+}
+
+.btn-back:active,
+.btn-edit:active,
+.btn-delete:active {
+  transform: translateY(0);
+}
+
+/* 標籤區域樣式 */
+.detail-card .tag {
+  display: inline-flex;
+  align-items: center;
+  background-color: #eef5ff;
+  color: #0066cc;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* 確保空的 .tag 不顯示 */
+.detail-card .tag:empty {
+  display: none;
+}
+
+.detail-card .tag button {
+  background: none;
+  border: none;
+  color: #ff4d4f;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-left: 0.3rem;
+  padding: 0;
+}
+
+.detail-card .tag button:hover {
+  color: #e64446;
+}
+
+/* 新增標籤按鈕樣式 */
+.btn-add-tag {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0066cc;
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.btn-add-tag:hover {
+  background-color: #005bb5;
+}
+
+.star-rating {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.star-rating i {
+  font-size: 1.4rem; /* 調整星星大小 */
+  color: #d3d3d3; /* 空心星星的顏色（灰色） */
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.star-rating .fa-solid {
+  color: #f5a623; /* 實心星星的顏色（橘黃色） */
+}
+
+.star-rating i:hover {
+  transform: scale(1.2); /* 滑鼠懸停時放大 */
+}
+
+/* 當滑鼠懸停時，改變前面的星星顏色（模擬評分效果） */
+.star-rating i:hover ~ i.fa-regular {
+  color: #d3d3d3; /* 確保後面的星星保持空心 */
+}
