@@ -3,6 +3,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import DOMPurify from 'dompurify'; // Added for text sanitization
 
 interface ToDoItem {
   id: number;
@@ -19,7 +24,14 @@ interface ToDoItem {
   templateUrl: './detail.component.html',
   styleUrls: ['./detail.component.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+  ],
 })
 export class DetailComponent implements OnInit {
   todo: ToDoItem | null = null;
@@ -39,6 +51,15 @@ export class DetailComponent implements OnInit {
     if (id) this.loadDetail(+id);
   }
 
+  // Sanitize text to remove HTML tags and non-breaking spaces
+  sanitizeText(input: string): string {
+    return DOMPurify.sanitize(input || '')
+      .replace(/<[^>]+>/g, '')   // Remove HTML tags
+      .replace(/ /g, ' ')   // Replace HTML non-breaking space with regular space
+      .replace(/\u00A0/g, ' ')   // Replace Unicode non-breaking space with regular space
+      .trim(); // Remove leading/trailing whitespace
+  }
+
   private getHeaders(): { headers: HttpHeaders } {
     const token = localStorage.getItem('token');
     return {
@@ -52,9 +73,15 @@ export class DetailComponent implements OnInit {
   loadDetail(id: number): void {
     this.http.get<ToDoItem>(`https://localhost:7134/api/Schedule/${id}`, this.getHeaders()).subscribe({
       next: (res) => {
-        this.todo = { ...res, priorityLevel: res.priorityLevel ?? 0 };
+        // Sanitize title and content before assigning to todo
+        this.todo = {
+          ...res,
+          title: this.sanitizeText(res.title),
+          content: this.sanitizeText(res.content),
+          priorityLevel: res.priorityLevel ?? 0,
+        };
         this.editedTodo = { ...this.todo };
-        // 解析 category 時，過濾空值並移除多餘的 # 符號
+        // Parse category, filtering out empty tags
         this.editedTags = this.todo.category
           ? this.todo.category.split('#').filter(tag => tag.trim() !== '')
           : [];
@@ -77,16 +104,16 @@ export class DetailComponent implements OnInit {
     this.isEditing = true;
     this.editedTodo = { ...this.todo, priorityLevel: this.todo?.priorityLevel ?? 0 };
     if (this.editedTodo.date) {
-      // 將日期轉換為 YYYY-MM-DDThh:mm 格式，並避免時區偏移
+      // Convert date to YYYY-MM-DDThh:mm format, avoiding timezone offset
       const date = new Date(this.editedTodo.date);
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份從 0 開始
+      const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
       this.editedTodo.date = `${year}-${month}-${day}T${hours}:${minutes}`;
     }
-    // 確保編輯模式下標籤正確初始化
+    // Ensure tags are correctly initialized in edit mode
     this.editedTags = this.todo?.category
       ? this.todo.category.split('#').filter(tag => tag.trim() !== '')
       : [];
@@ -111,12 +138,22 @@ export class DetailComponent implements OnInit {
   saveEdit(): void {
     if (!this.todo) return;
 
-    // 將標籤陣列轉換為字串格式，確保不產生多餘的 # 符號
+    // Sanitize title and content before saving
+    this.editedTodo.title = this.sanitizeText(this.editedTodo.title || '');
+    this.editedTodo.content = this.sanitizeText(this.editedTodo.content || '');
+
+    // Validate that title is not empty after sanitization
+    if (!this.editedTodo.title) {
+      alert('標題不能為空');
+      return;
+    }
+
+    // Convert tags array to string format, ensuring no extra # symbols
     this.editedTodo.category = this.editedTags.length > 0
       ? this.editedTags.map(tag => `#${tag}`).join('')
       : '';
 
-    // 確保 priorityLevel 有值
+    // Ensure priorityLevel has a value
     this.editedTodo.priorityLevel = this.editedTodo.priorityLevel ?? 0;
 
     console.log('發送的 payload:', this.editedTodo);
@@ -158,6 +195,14 @@ export class DetailComponent implements OnInit {
             alert('刪除失敗：' + (err.statusText || err.message));
           },
         });
+    }
+  }
+
+  // Method to handle keypress events (to be used in the template if needed)
+  onKeyPress(event: KeyboardEvent): void {
+    // Prevent spacebar from triggering unintended actions
+    if (event.key === ' ' && !this.isEditing) {
+      event.preventDefault(); // Stop spacebar from triggering default behavior
     }
   }
 }

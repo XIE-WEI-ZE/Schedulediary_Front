@@ -1,87 +1,152 @@
-<div class="layout">
+<div class="layout" (keypress)="onKeyPress($event)">
   <header class="header">
-    <h2>📅 我的行事曆 ToDo 系統</h2>
+    <h2> 我的行事曆 ToDo 系統</h2>
   </header>
 
   <nav class="sidebar">
     <h5>功能選單</h5>
-    <button (click)="activeTab = 'add'">➕ 新增事項</button>
-    <button (click)="toggleQueryMenu()">📁 查詢事項 {{ queryMenuOpen ? '⯆' : '⯈' }}</button>
+    
+    <button (click)="activeTab = 'calendar'">月曆</button>
+    <button (click)="activeTab = 'add'"> 新增事項</button>
+    <button (click)="toggleQueryMenu()"> 查詢事項 {{ queryMenuOpen ? '⯆' : '⯈' }}</button>
     <div *ngIf="queryMenuOpen" class="submenu">
-      <button (click)="activeTab = 'today'; getTodayTodos()">📅 今日資料</button>
-      <button (click)="activeTab = 'all'; getAllTodos()">📖 全部資料</button>
+      <button (click)="activeTab = 'today'; getTodayTodos()"> 本日待辦事項</button>
+      <button (click)="activeTab = 'all'; getAllTodos()"> 全部待辦事項</button>
     </div>
-    <button (click)="logout()">🚪 登出</button>
+    <button (click)="logout()"> 登出</button>
   </nav>
 
   <main class="main-content">
+    <!--  月曆畫面 -->
+    <div *ngIf="activeTab === 'calendar'" class="calendar-wrapper">
+      <div class="calendar-header">
+        <button class="nav-btn prev-btn" (click)="goToPreviousMonth()" title="上個月">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <h3 class="month-title">{{ viewDate | date: 'yyyy年 MMMM':undefined:'zh-Hant' }}</h3>
+        <button class="nav-btn next-btn" (click)="goToNextMonth()" title="下個月">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <mwl-calendar-month-view
+        [viewDate]="viewDate"
+        [events]="events"
+        (dayClicked)="onDayClicked($event.day.date)"
+        [refresh]="refresh">
+        <ng-template #customEventTemplate let-event="event">
+          <div class="event-marker-dot" [ngClass]="{'has-uncompleted': event.meta.uncompleted > 0}"></div>
+        </ng-template>
+        <!-- 添加工具提示模板 -->
+        <ng-template #customTooltipTemplate let-event="event">
+          <div class="modern-tooltip">
+            {{ event.meta.tooltip }}
+          </div>
+        </ng-template>
+      </mwl-calendar-month-view>
+    </div>
+
     <!-- 新增事項 -->
     <div *ngIf="activeTab === 'add'" class="form-wrapper modern-form">
       <h4><i class="fas fa-plus-circle"></i> 新增待辦事項</h4>
 
-      <!-- 標題 -->
-      <div class="form-group floating">
-        <input type="text" id="title" [(ngModel)]="newTodo.title" placeholder=" " />
-        <label for="title">標題</label>
+      <!-- 基本資訊分組 -->
+      <div class="form-section">
+        <h5 class="section-title">基本資訊</h5>
+
+        <!-- 標題 -->
+        <div class="form-group floating">
+          <input type="text" id="title" [(ngModel)]="newTodo.title" placeholder=" " (keypress)="onKeyPress($event)" />
+          <label for="title">標題</label>
+        </div>
+
+        <!-- 日期 -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label> 選擇日期</mat-label>
+          <input
+            matInput
+            [matDatepicker]="editPicker"
+            [(ngModel)]="newTodo.dueDateTime"
+            placeholder="請選擇日期"
+            (keypress)="onKeyPress($event)"
+          />
+          <mat-datepicker-toggle matSuffix [for]="editPicker"></mat-datepicker-toggle>
+          <mat-datepicker #editPicker></mat-datepicker>
+        </mat-form-field>
       </div>
 
-      <!-- 內容 -->
-      <div class="form-group floating">
-        <textarea id="content" [(ngModel)]="newTodo.content" placeholder=" "></textarea>
-        <label for="content">內容</label>
-      </div>
+      <!-- 內容分組 -->
+      <div class="form-section">
+        <h5 class="section-title">內容詳情</h5>
 
-      <!-- 日期 -->
-      <div class="form-group floating">
-        <input type="date" id="date" [(ngModel)]="newTodo.date" />
-        <label for="date">日期</label>
-      </div>
-
-      <!-- 優先級（星星） -->
-      <div class="form-group">
-        <label>優先級</label>
-        <div class="star-rating">
-          <i
-            *ngFor="let star of [1, 2, 3, 4, 5]"
-            class="fa-star"
-            [class.fa-solid]="newTodo.priorityLevel >= star"
-            [class.fa-regular]="newTodo.priorityLevel < star"
-            (click)="newTodo.priorityLevel = star"
-          ></i>
+        <!-- 內容（使用富文字編輯器） -->
+        <div class="form-group">
+          <quill-editor
+            [(ngModel)]="newTodo.content"
+            [styles]="{ height: '200px' }"
+            [modules]="quillConfig"
+            (onEditorCreated)="onEditorCreated($event)"
+          ></quill-editor>
         </div>
       </div>
 
-      <!-- 類別標籤 -->
-      <div class="form-group">
-        <label>類別標籤（最多三個）</label>
-        <div class="tag-row">
-          <span class="tag" *ngFor="let tag of newTags; let i = index">
-            #{{ tag }} <button type="button" (click)="removeTag(i)">✖</button>
-          </span>
+      <!-- 其他設定分組 -->
+      <div class="form-section">
+        <h5 class="section-title">其他設定</h5>
+
+        <!-- 優先級（星星） -->
+        <div class="form-group">
+          <label>優先級</label>
+          <div class="star-rating">
+            <i
+              *ngFor="let star of [1, 2, 3, 4, 5]"
+              class="fa-star"
+              [class.fa-solid]="newTodo.priorityLevel >= star"
+              [class.fa-regular]="newTodo.priorityLevel < star"
+              (click)="newTodo.priorityLevel = star"
+            ></i>
+          </div>
         </div>
-        <div class="tag-input-group">
-          <input type="text" maxlength="10" [(ngModel)]="tagInput" placeholder="輸入標籤…" (keydown.enter)="addTag()" />
-          <button type="button" class="btn-add-tag" (click)="addTag()">
-            <i class="fas fa-plus"></i> 新增
-          </button>
+
+        <!-- 類別標籤 -->
+        <div class="form-group">
+          <label>類別標籤（最多三個）</label>
+          <div class="tag-row">
+            <span class="tag" *ngFor="let tag of newTags; let i = index">
+              #{{ tag }} <button type="button" (click)="removeTag(i)">✖</button>
+            </span>
+          </div>
+          <div class="tag-input-group">
+            <input
+              type="text"
+              maxlength="10"
+              [(ngModel)]="tagInput"
+              placeholder="輸入標籤…"
+              (keydown.enter)="addTag()"
+              (keypress)="onKeyPress($event)"
+            />
+            <button class="icon-round-btn btn-blue" (click)="addTag()" title="新增標籤">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- 確認按鈕 -->
       <div class="form-actions">
-        <button class="confirm-btn" (click)="addTodo()">
-          <i class="fas fa-check"></i> 新增事項
+        <button class="icon-round-btn btn-green" (click)="addTodo()" title="新增事項">
+          <i class="fas fa-check"></i>
         </button>
       </div>
     </div>
 
     <!-- 查詢結果（今日 / 全部） -->
     <div *ngIf="activeTab === 'today' || activeTab === 'all'" class="todo-list">
-      <h4>📋 {{ activeTab === 'today' ? '今日資料' : '全部資料' }}</h4>
+      <h4>📋 {{ activeTab === 'today' ? '本日待辦事項' : '全部待辦事項' }}</h4>
 
       <!-- 搜尋區域 -->
       <div class="search-bar-container">
-        <input type="text" class="search-input" placeholder="搜尋關鍵字…" [(ngModel)]="searchCriteria.keyword" />
+        <input type="text" class="search-input" placeholder="搜尋關鍵字…" [(ngModel)]="searchCriteria.keyword" (keypress)="onKeyPress($event)" />
         <button class="icon-btn icon-search" (click)="searchTodos()" title="搜尋">
           <i class="fas fa-search"></i>
         </button>
@@ -89,102 +154,112 @@
           <i class="fas fa-sliders-h"></i>
         </button>
       </div>
-<!-- ✅ 進階搜尋彈跳視窗（Modal） -->
-<div class="modal-backdrop" *ngIf="showAdvancedSearch">
-  <div class="modal">
-    <h3>進階搜尋條件</h3>
 
-    <div class="form-group">
-      <label>關鍵字：</label>
-      <input type="text" [(ngModel)]="tempSearchCriteria.keyword" />
-    </div>
+      <!-- 進階搜尋彈跳視窗（Modal） -->
+      <div class="modal-backdrop" *ngIf="showAdvancedSearch">
+        <div class="modal">
+          <h3>進階搜尋條件</h3>
 
-    <div class="form-group">
-      <label>搜尋欄位：</label>
-      <div class="custom-checkbox-row">
-        <div class="custom-checkbox">
-          <input type="checkbox" id="field-title" [(ngModel)]="tempSearchCriteria.searchFields.title" />
-          <label for="field-title">標題</label>
-        </div>
-        <div class="custom-checkbox">
-          <input type="checkbox" id="field-content" [(ngModel)]="tempSearchCriteria.searchFields.content" />
-          <label for="field-content">內容</label>
-        </div>
-        <div class="custom-checkbox">
-          <input type="checkbox" id="field-tag" [(ngModel)]="tempSearchCriteria.searchFields.tag" />
-          <label for="field-tag">標籤</label>
+          <div class="form-group">
+            <label>關鍵字：</label>
+            <input type="text" [(ngModel)]="tempSearchCriteria.keyword" (keypress)="onKeyPress($event)" />
+          </div>
+
+          <div class="form-group">
+            <label>搜尋欄位：</label>
+            <div class="custom-checkbox-row">
+              <label class="custom-checkbox">
+                <input type="checkbox" id="field-title" [(ngModel)]="tempSearchFieldTitle" (change)="logChange('title', $event)" />
+                標題
+              </label>
+              <label class="custom-checkbox">
+                <input type="checkbox" id="field-content" [(ngModel)]="tempSearchFieldContent" (change)="logChange('content', $event)" />
+                內容
+              </label>
+              <label class="custom-checkbox">
+                <input type="checkbox" id="field-tag" [(ngModel)]="tempSearchFieldTag" (change)="logChange('tag', $event)" />
+                標籤
+              </label>
+            </div>
+          </div>
+
+          <div class="date-range-group">
+            <mat-form-field appearance="fill" class="date-field">
+              <mat-label>開始日期</mat-label>
+              <input matInput [matDatepicker]="startPicker" [(ngModel)]="tempSearchCriteria.startDate" (keypress)="onKeyPress($event)" />
+              <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+              <mat-datepicker #startPicker></mat-datepicker>
+            </mat-form-field>
+          
+            <span class="tilde">~</span>
+          
+            <mat-form-field appearance="fill" class="date-field">
+              <mat-label>結束日期</mat-label>
+              <input matInput [matDatepicker]="endPicker" [(ngModel)]="tempSearchCriteria.endDate" (keypress)="onKeyPress($event)" />
+              <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+              <mat-datepicker #endPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <div class="form-group">
+            <label>優先級：</label>
+            <select [(ngModel)]="tempSearchCriteria.priorityLevel">
+              <option value="">全部</option>
+              <option value="1-2">普通</option>
+              <option value="3-4">重要</option>
+              <option value="5">極重要</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>標籤：</label>
+            <input type="text" [(ngModel)]="tempSearchCriteria.tag" (keypress)="onKeyPress($event)" />
+          </div>
+
+          <div class="form-group">
+            <label>完成狀態：</label>
+            <select [(ngModel)]="tempSearchCriteria.completionStatus">
+              <option value="all">全部</option>
+              <option value="completed">已完成</option>
+              <option value="uncompleted">未完成</option>
+            </select>
+          </div>
+
+          <div class="form-actions modal-actions">
+            <button class="confirm-btn" (click)="applyAdvancedSearch()" title="確認搜尋">
+              <i class="fas fa-check"></i>
+            </button>
+            <button class="cancel-btn" (click)="cancelAdvancedSearch()" title="取消">
+              <i class="fas fa-times"></i>
+            </button>
+            <button class="clear-btn" (click)="clearAdvancedSearch()" title="清除條件">
+              <i class="fas fa-broom"></i>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-    
-
-    <div class="form-group">
-      <label>日期區間：</label>
-      <input type="date" [(ngModel)]="tempSearchCriteria.startDate" />
-      ~
-      <input type="date" [(ngModel)]="tempSearchCriteria.endDate" />
-    </div>
-
-    <div class="form-group">
-      <label>優先級：</label>
-      <select [(ngModel)]="tempSearchCriteria.priorityLevel">
-        <option value="">全部</option>
-        <option value="1-2">普通</option>
-        <option value="3-4">重要</option>
-        <option value="5">極重要</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>標籤：</label>
-      <input type="text" [(ngModel)]="tempSearchCriteria.tag" />
-    </div>
-
-    <div class="form-group">
-      <label>完成狀態：</label>
-      <select [(ngModel)]="tempSearchCriteria.completionStatus">
-        <option value="all">全部</option>
-        <option value="completed">已完成</option>
-        <option value="uncompleted">未完成</option>
-      </select>
-    </div>
-
-    <div class="form-actions modal-actions">
-      <button class="confirm-btn" (click)="applyAdvancedSearch()" title="確認搜尋">
-        <i class="fas fa-check"></i>
-      </button>
-      <button class="cancel-btn" (click)="cancelAdvancedSearch()" title="取消">
-        <i class="fas fa-times"></i>
-      </button>
-      <button class="clear-btn" (click)="clearAdvancedSearch()" title="清除條件">
-        <i class="fas fa-broom"></i>
-      </button>
-    </div>
-  </div>
-</div>
-
 
       <ul>
         <li *ngFor="let todo of todos">
           <div class="todo-item">
-            <!-- 按鈕移到右上角 -->
+            <!-- 按鈕-->
             <div class="todo-actions">
-              <!-- 👁️ 閱讀更多（右上角） -->
+              <!-- 閱讀更多（右上角） -->
               <button class="btn-info" [routerLink]="['/detail', todo.id]" title="閱讀更多">
                 <i class="fas fa-eye"></i>
               </button>
-            
-              <!-- ✏️ 編輯 -->
+
+              <!-- 編輯 -->
               <button class="btn-warning" (click)="editTodo(todo)" title="編輯">
                 <i class="fas fa-edit"></i>
               </button>
-            
-              <!-- 🗑️ 刪除 -->
+
+              <!-- 刪除 -->
               <button class="btn-danger" (click)="deleteTodo(todo.id)" title="刪除">
                 <i class="fas fa-trash"></i>
               </button>
             </div>
-      
+
             <div class="todo-header">
               <input
                 type="checkbox"
@@ -192,19 +267,19 @@
                 (change)="toggleComplete(todo, $event)"
               />
               <span class="todo-title">{{ todo.title }}</span>
-              <span class="todo-date">{{ todo.date }}</span>
+              <span class="todo-date">{{ todo.dueDateTime | date: 'yyyy-MM-dd' }}</span>
               <span class="todo-status" [ngClass]="{'completed': todo.isCompleted, 'uncompleted': !todo.isCompleted}">
                 {{ todo.isCompleted ? '已完成' : '未完成' }}
               </span>
             </div>
-            <!-- 移除「閱讀更多」鏈接 -->
+
             <div class="todo-footer">
               <div class="priority">
-                優先級: 
+                優先級:
                 <span *ngIf="todo.priorityLevel <= 2">普通</span>
                 <span *ngIf="todo.priorityLevel === 3 || todo.priorityLevel === 4">重要</span>
                 <span *ngIf="todo.priorityLevel === 5">極為重要</span>
-              </div>          
+              </div>
               <div class="tag-row">
                 <span *ngFor="let tag of todo.category.split('#')">
                   <span *ngIf="tag" class="tag">#{{ tag }}</span>
@@ -240,26 +315,43 @@
           </button>
         </div>
 
-        <h2>✏️ 編輯待辦事項</h2>
+        <h2>編輯待辦事項</h2>
 
+        <!-- 標題 -->
         <p>
           <strong>標題：</strong>
-          <input type="text" [(ngModel)]="editingTodo.title" placeholder="輸入標題" />
+          <input type="text" [(ngModel)]="editingTodo.title" placeholder="輸入標題" (keypress)="onKeyPress($event)" />
         </p>
 
+        <!-- 內容 -->
         <p>
-          <strong>📄 內容：</strong>
-          <textarea [(ngModel)]="editingTodo.content" placeholder="輸入內容"></textarea>
+          <strong>內容：</strong>
+          <quill-editor
+            [(ngModel)]="editingTodo.content"
+            [styles]="{ height: '200px' }"
+            [modules]="quillConfig"
+            placeholder="輸入待辦事項內容..."
+            (onEditorCreated)="onEditorCreated($event)"
+          ></quill-editor>
         </p>
 
-        <p>
-          <strong>📅 日期：</strong>
-          <input type="datetime-local" [(ngModel)]="editingTodo.date" />
-        </p>
+        <!-- 日期（使用 Angular Material Datepicker） -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>選擇日期</mat-label>
+          <input
+            matInput
+            [matDatepicker]="editPicker"
+            [(ngModel)]="editingTodo.dueDateTime"
+            placeholder="請選擇日期"
+            (keypress)="onKeyPress($event)"
+          />
+          <mat-datepicker-toggle matSuffix [for]="editPicker"></mat-datepicker-toggle>
+          <mat-datepicker #editPicker></mat-datepicker>
+        </mat-form-field>
 
         <!-- 優先級（星星） -->
         <div>
-          <strong>🔥 優先級：</strong>
+          <strong>優先級：</strong>
           <div class="star-rating">
             <i
               *ngFor="let star of [1, 2, 3, 4, 5]"
@@ -271,8 +363,9 @@
           </div>
         </div>
 
+        <!-- 是否完成 -->
         <div class="status-section">
-          <strong>✅ 是否完成：</strong>
+          <strong>是否完成：</strong>
           <label>
             <input type="radio" name="isCompleted" [(ngModel)]="editingTodo.isCompleted" [value]="true" /> 是
           </label>
@@ -281,8 +374,9 @@
           </label>
         </div>
 
+        <!-- 標籤 -->
         <p>
-          <strong>📂 類別（最多三個）：</strong>
+          <strong>類別（最多三個）：</strong>
           <span class="tag" *ngFor="let tag of editingTags; let i = index">
             #{{ tag }} <button type="button" (click)="removeEditTag(i)">✖</button>
           </span>
@@ -292,9 +386,23 @@
             [(ngModel)]="editingTagInput"
             placeholder="輸入標籤後按 Enter 或新增"
             (keydown.enter)="addEditTag()"
+            (keypress)="onKeyPress($event)"
           />
           <button type="button" class="btn-add-tag" (click)="addEditTag()">新增標籤</button>
         </p>
+      </div>
+    </div>
+
+    <!-- 今日統計彈窗 -->
+    <div class="modal-backdrop" *ngIf="showTodaySummary">
+      <div class="modal">
+        <h3>今日待辦統計</h3>
+        <p>今天你有 {{ todaySummary.total }} 筆事項：</p>
+        <p>已完成：{{ todaySummary.completed }} 筆</p>
+        <p>未完成：{{ todaySummary.uncompleted }} 筆</p>
+        <div class="modal-actions">
+          <button class="confirm-btn" (click)="closeTodaySummary()">關閉</button>
+        </div>
       </div>
     </div>
   </main>

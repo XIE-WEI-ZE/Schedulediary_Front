@@ -19,14 +19,28 @@
     <h2 *ngIf="!isEditing">{{ todo.title }}</h2>
     <input *ngIf="isEditing" type="text" [(ngModel)]="editedTodo.title" placeholder="輸入標題" />
 
-    <p>
-      <strong>📅 日期：</strong>
-      <span *ngIf="!isEditing">{{ todo.date }}</span>
-      <input *ngIf="isEditing" type="datetime-local" [(ngModel)]="editedTodo.date" />
-    </p>
+<!-- 📅 日期：標題 -->
+<p><strong>日期：</strong></p>
+
+<!-- 顯示模式 -->
+<p *ngIf="!isEditing">{{ todo.date }}</p>
+
+<!-- 編輯模式：不能放在 <p> 裡 -->
+<div *ngIf="isEditing" class="form-group">
+  <mat-form-field appearance="outline" class="date-picker-field">
+    <mat-label>選擇日期</mat-label>
+    <input matInput [matDatepicker]="picker" [(ngModel)]="editedTodo.date" />
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+</div>
+
+    
+    
+    
 
     <div class="status-section">
-      <strong>✅ 狀態：</strong>
+      <strong>完成沒?</strong>
       <span *ngIf="!isEditing" [ngClass]="{'completed': todo.isCompleted, 'uncompleted': !todo.isCompleted}">
         {{ todo.isCompleted ? '已完成' : '未完成' }}
       </span>
@@ -42,14 +56,14 @@
     </div>
 
     <p>
-      <strong>📄 內容：</strong>
+      <strong>內容：</strong>
       <span *ngIf="!isEditing">{{ todo.content }}</span>
       <textarea *ngIf="isEditing" [(ngModel)]="editedTodo.content" placeholder="輸入內容"></textarea>
     </p>
 
     <!-- 優先級（星星） -->
     <p>
-      <strong>🔥 優先級：</strong>
+      <strong>優先級：</strong>
       <!-- 顯示模式：以星星形式顯示 -->
       <span *ngIf="!isEditing">
         <span class="star-rating">
@@ -76,7 +90,7 @@
     </p>
 
     <div class="category-section">
-      <strong>📂 類別（最多三個）：</strong>
+      <strong>類別（最多三個）：</strong>
       <ng-container *ngIf="!isEditing">
         <span class="tag" *ngFor="let tag of todo.category?.split('#')">
           <span *ngIf="tag.trim() !== ''">#{{ tag }}</span>

@@ -1,1 +1,25 @@
 /* You can add global styles to this file, and also import other style files */
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+.ql-editor.ql-blank::before {
+    color: #ccc; 
+    font-style: italic;
+    font-size: 14px;
+    transition: opacity 0.2s;
+  }
+  
+  .ql-editor:not(.ql-blank)::before {
+    opacity: 0 !important; /* 有輸入時強制隱藏 */
+  }
+
+  ::ng-deep .mat-datepicker-content,
+::ng-deep .mat-calendar {
+  background-color: white !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+* {
+  forced-color-adjust: none;
+}

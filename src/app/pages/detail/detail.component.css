@@ -239,3 +239,44 @@
 .star-rating i:hover ~ i.fa-regular {
   color: #d3d3d3; /* 確保後面的星星保持空心 */
 }
+
+.mat-datepicker-content {
+  z-index: 1000 !important;
+}
+
+.cdk-overlay-container {
+  z-index: 1000 !important;
+}
+.mat-datepicker-popup {
+  z-index: 1000 !important;
+}
+
+::ng-deep .mat-datepicker-content,
+::ng-deep .mat-calendar {
+  background-color: #ffffff !important; /* 純白背景 */
+  border-radius: 12px !important;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15) !important;
+  color: #333 !important;
+}
+
+::ng-deep .mat-calendar-table {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 14px;
+}
+
+::ng-deep .mat-calendar-arrow {
+  color: #333 !important;
+}
+
+::ng-deep .mat-calendar-body-cell-content {
+  border-radius: 8px;
+}
+
+::ng-deep .mat-calendar-body-selected {
+  background-color: #0066cc !important;
+  color: white !important;
+}
+
+::ng-deep input.mat-input-element {
+  padding-left: 20px !important;  /* 可調整為 16px 看效果 */
+}

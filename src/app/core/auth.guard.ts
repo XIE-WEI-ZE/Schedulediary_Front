@@ -1,18 +1,27 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
-import { JwtService } from '../services/jwt.service'; // 引入 JwtService
+import { JwtService } from '../services/jwt.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService, private router: Router) {} // 注入 JwtService
+
+  constructor(private jwtService: JwtService, private router: Router) {}
 
   canActivate(): boolean {
-    if (this.jwtService.isTokenValid()) { // 使用 JwtService 的 isTokenValid 方法
-      return true; // 權杖有效，允許訪問
-    } else {
-      this.router.navigate(['/login']); // 權杖無效，導航到登入頁面
+    try {
+      if (this.jwtService.isTokenValid()) {
+        return true;
+      } else {
+        this.jwtService.clearToken(); // 清掉過期的 token
+        this.router.navigate(['/login']);
+        return false;
+      }
+    } catch (e) {
+      console.error('AuthGuard 驗證錯誤：', e);
+      this.jwtService.clearToken();
+      this.router.navigate(['/login']);
       return false;
     }
   }

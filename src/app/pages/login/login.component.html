@@ -35,6 +35,20 @@
       <div class="error-message">{{ errorMessage }}</div>
       <button type="submit">登入</button>
     </form>
+
+    <!-- 社交登入按鈕區塊（移出 form 標籤） -->
+    <div class="social-login-section">
+      <hr />
+      <span>使用 Google 登入</span>
+      <div class="social-login-buttons">
+        <!-- 自訂 Google 登入按鈕 -->
+        <button class="social-btn google-btn" (click)="triggerGoogleSignIn()">
+          <img src="https://www.google.com/favicon.ico" alt="Google Icon" />
+        </button>
+      </div>
+      <!-- 隱藏的 Google 官方按鈕容器 -->
+      <div id="google-signin-hidden" style="display: none;"></div>
+    </div>
   </div>
 
   <!-- 切換面板 -->
